@@ -167,7 +167,7 @@ for(Garments g: getgarments){
                 }
             }
 
-================  RemoteServlet
+================  CategoryServlet
 try ( PrintWriter out = response.getWriter()) {
             Collection<Category> categories = rc.getallcategories();
 .
