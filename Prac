@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 automobile = pd.read_csv('Automobile_data.csv')
 print(automobile)
 
+# # #setting missing to mean
+# # # Setting the missing value to mean of normalized losses and conver the datatype to integer
 nl = automobile['normalized-losses'].loc[automobile['normalized-losses'] != '?']
 # print(n1)
 nlmean = nl.astype(str).astype(int).mean()
@@ -87,13 +89,6 @@ print(automobile.isnull().sum())
 # # # Find out number of records having '?' value for normalized losses
 print(automobile['normalized-losses'].loc[automobile['normalized-losses'] == '?'].count())
 
-# # #setting missing to mean
-# # # Setting the missing value to mean of normalized losses and conver the datatype to integer
-nl = automobile['normalized-losses'].loc[automobile['normalized-losses'] != '?']
-nlmean = nl.astype(str).astype(int).mean()
-automobile['normalized-losses'] = automobile['normalized-losses'].replace('?',nlmean).astype(int)
-print(automobile['normalized-losses'].head())
-
 # #cleaning price data
 # # Find out the number of values which are not numeric
 print(automobile['price'].str.isnumeric().value_counts())
@@ -106,7 +101,6 @@ price = automobile['price'].loc[automobile['price'] != '?']
 pmean = price.astype(str).astype(int).mean()
 automobile['price'] = automobile['price'].replace('?',pmean).astype(int)
 print(automobile['price'].head())
-
 
 # #Checking the numberic and replacing with mean value and conver the datatype to integer
 automobile['horsepower'].str.isnumeric().value_counts()
@@ -133,11 +127,6 @@ automobile['normalized-losses'].hist(bins=5,color='orange');
 plt.title("Normalized losses of vehicles")
 plt.ylabel('Number of vehicles')
 plt.xlabel('Normalized losses');
-
-#automobile['fuel-type'].value_counts().plot(kind='bar',color='purple')
-#plt.title("Fuel type frequence diagram")
-#plt.ylabel('Number of vehicles')
-#plt.xlabel('Fuel type');
 
 automobile['num-of-doors'].value_counts().plot(kind='bar',color='purple')
 plt.title("Number of doors frequency diagram")
