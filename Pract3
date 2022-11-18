@@ -1,674 +1,200 @@
+<====   bar pie graph cars ==============>EDA
 
-npm i -g express-generator
-express --view=ejs expgen_app
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import os
 
-------------------------------------------     models/product.js------------------------------------------
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
-const productSchema = new Schema({
-    title: {
-        type: String,
-        required: true
-    },
-    price: {
-        type: Number,
-        required: true
-    },
-    description: {
-        type: String,
-        required: true
-    },
-    image: {
-        type: String,
-        required: true
-    },
-    category: {
-        type: String,
-        required: true
-    }
-});
+print(os.chdir("F:/vnsgu_ict3/python"))
 
-module.exports = mongoose.model('Product', productSchema);
+# reading data
+automobile = pd.read_csv('Automobile_data.csv')
+print(automobile)
 
-------------------------------------------     views/addproduct.ejs      ------------------------------------------
+nl = automobile['normalized-losses'].loc[automobile['normalized-losses'] != '?']
+# print(n1)
+nlmean = nl.astype(str).astype(int).mean()
+automobile['normalized-losses'] = automobile['normalized-losses'].replace('?',nlmean).astype(int)
+print(automobile['normalized-losses'].head())
 
-<html>
-    <head>
-        <title>Add Product</title>
-    </head>
-    <body>
-        <h1>Add Product</h1>
-        <form action="/addproduct" method="post" enctype="multipart/form-data">
-            <table>
-                <tr>
-                    <td>Image</td>
-                    <td><input type="file" name="productImage" accept="image/jpeg, image/png"></td>
-                </tr>
-                <tr>
-                    <td>Name</td>
-                    <td><input type="text" name="title"></td>
-                </tr>
-                <tr>
-                    <td>Price</td>
-                    <td><input type="number" name="price"></td>
-                </tr>
-                <tr>
-                    <td>Description</td>
-                    <td><input type="text" name="description"></td>
-                </tr>
-                <tr>
-                    <td>Category</td>
-                    <td><input type="text" name="category"></td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td><input type="submit" value="Add Product"></td>
-                </tr>
-            </table>
-        </form>
-    </body>
-</html>
+# Draw bar chart of Make column 
+automobile.make.value_counts().nlargest(4).plot(kind='bar', figsize=(15,5))
+plt.title('Number of cars by make')
+plt.ylabel('Number of cars')
+plt.xlabel('Make')
+
+plt.show()
+
+# Draw pie chart of fuel-type column
+print(automobile['fuel-type'].head())
+automobile['fuel-type'].value_counts().plot.pie(figsize=(5,5),autopct='%.2f')
+plt.title('Pie chart of fuel-type')
+plt.show()
+
+# Draw a histogram of the normalized-losses column
+# df['normalized-losses'].hist(bins=5,color='orange')
+# plt.title('Histogram of normalized-losses')
+# plt.ylabel('Number of cars')
+# plt.xlabel('Normalized losses')
+# plt.show()
 
 
-------------------------------------------     views/showproduct.ejs      ------------------------------------------
-<html>
-<head>
-    <title>Products</title>
-</head>
-<body>
-    <h1>Products</h1>
-    <!-- Add product button -->
-    <a href="/addproduct">Add Product</a>
-    <table border="1">
-        <tr>
-            <th>Image</th>
-            <th>Name</th>
-            <th>Price</th>
-            <th>Description</th>
-            <th>Category</th>
-        </tr>
-        <% if(products.length == 0) { %>
-            <tr>
-                <td colspan="5">No products found</td>
-            </tr>
-        <% } %>
-        <% for (var i = 0; i < products.length; i++) { %>
-            <tr>
-                <td><img src="<%= products[i].image %>" width="100" height="100"></td>
-                <td><%= products[i].title %></td>
-                <td><%= products[i].price %></td>
-                <td><%= products[i].description %></td>
-                <td><%= products[i].category %></td>
-            </tr>
-        <% } %>
-    </table>
-</body>
-</html>
+<==========  speed intercept years      =======> linear regression
+
+import matplotlib.pyplot as plt
+from scipy import stats
+
+x = [5,7,8,7,2,17,2,9,4,11,12,9,6]
+y = [99,86,87,88,111,86,103,87,94,78,77,85,86]
+
+slope, intercept, r, p, std_err = stats.linregress(x, y)
+
+def myfunc(x):
+  return slope * x + intercept
+
+mymodel = list(map(myfunc, x))
+
+plt.scatter(x, y)
+plt.plot(x, mymodel)
+plt.show()
+ # predict the speed of a 10 years old car:
+speed = myfunc(10)
+print(speed)
 
 
-------------------------------------------    app.js      ------------------------------------------
-const express = require('express');
-const app = express();
-const multer = require('multer');
-const storage = multer.diskStorage({
-    destination: function(req, file, cb){
-        cb(null,'./uploads/');
-    },
-    filename: function(req, file, cb){
-        cb(null, file.originalname);
-    }
-});
-const fileFilter = (req, file, cb) => {
-    if(file.mimetype === 'image/jpeg' || file.mimetype === 'image/png'){
-        cb(null, true);
-    }else{
-        cb(null, false);
-    }
-};
-const upload = multer({storage: storage, fileFilter: fileFilter});
-const ProductController = require('./Controllers/productscontroller');
-const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost:27017/ProductsDB', (err) => {
-    if (!err) {
-        console.log('MongoDB connection succeeded.');
-    }
-    else {
-        console.log('Error in DB connection : ' + err);
-    }
-});
-app.set('view engine', 'ejs');
-app.use(express.static('uploads'));
-app.use(express.urlencoded({extended: false}));
-app.use(express.json());
 
-app.get('/', ProductController.showProduct);
+<============  multiple regression =============>
 
-app.get('/addproduct', function (req, res) {
-    res.render('addproduct');
-});
+import pandas
+from sklearn import linear_model
 
-app.post('/addproduct', upload.single('productImage'), ProductController.addProduct);
+df = pandas.read_csv("data.csv")
 
-app.listen(3000, function () {
-    console.log('Server started at port 3000');
-});
+X = df[['Weight', 'Volume']]
+y = df['CO2']
 
-------------------------------packages:
-"ejs": "^3.1.8",
-    "express": "^4.18.2",
-    "mongoose": "^6.7.0",
-    "multer": "^1.4.5-lts.1",
-    "nodemon": "^2.0.20"
+regr = linear_model.LinearRegression()
+regr.fit(X, y)
 
-"start": "nodemon app.js"
+#predict the CO2 emission of a car where the weight is 2300kg, and the volume is 1300cm3:
+predictedCO2 = regr.predict([[2300, 1300]])
 
-------------------------------------------    index.php(job portal wala)     ------------------------------------------
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Online Job Search Website</title>
-</head>
-<body>
-    <h1> User Registration Form </h1>
-    <table>
-        <form action="data_action.php" method="post" enctype="multipart/form-data">
-            <tr>
-                <td>Name:</td>
-                <td><input type="text" name="name" required></td>
-            </tr> 
-            <tr>
-                <td>Phone:</td>
-                <td><input type="tel" name="phone" pattern="[0-9]{10}" required></td>
-            </tr>
-            <tr>
-                <td>Email:</td>
-                <td><input type="email" name="email" required></td>
-            </tr>
-           
-            <tr>
-                <td>Address:</td>
-                <td><textarea name="address" rows="3" cols="30"></textarea></td>
-            </tr>
-            <tr>
-                <td>City:</td>
-                <td><input type="text" name="city" required></td>
-            </tr>
-            <tr>
-                <td>State:</td>
-                <td><input type="text" name="state" required></td>
-            </tr>
-            <tr>
-                <td>Zip:</td>
-                <td><input type="number" name="zip"></td>
-            </tr>
-            <tr>
-                <td>Position:</td>
-                <td>
-                    <select name="position" id="position" required>
-                        <option value="Full Stack Developer">Full Stack Developer</option>
-                        <option value="Frontend Developer">Frontend Developer</option>
-                        <option value="Backend Developer">Backend Developer</option>
-                        <option value="Software Engineer">Software Engineer</option>
-                    </select>
-                </td>
-            </tr>
-             <tr>
-                <td>Profile:</td>
-                <td><input type="file" name="profile" accept=".jpg,.jpeg"></td>
-            </tr>
-            <tr>
-                <td>Resume:</td>
-                <td><input type="file" name="resume" accept=".pdf" required></td>
-            </tr>
-           
-            <tr>
-                <td><input type="submit" name="submit" value="Submit"></td>
-            </tr>
-        </form>
-    </table>
-</body>
-</html>
+print(predictedCO2)
 
 
-------------------------------------------    data_action.php   ------------------------------------------
-<?php
-// Define variables and initialize with empty values
-$name = $email = $phone = $address = $city = $state = $zip = $position = $resume = "";
 
-// Processing form data when form is submitted
-if(isset($_POST["submit"])){
-    
-    $resume_dir = "resume/";
-    $resume_file = $resume_dir . basename($_FILES["resume"]["name"]);
-    $resumeFileType = strtolower(pathinfo($resume_file,PATHINFO_EXTENSION));
-    
-    $profile_dir = "profile/";
-    $profile_file = $profile_dir . basename($_FILES["profile"]["name"]);
-    $profileFileType = strtolower(pathinfo($profile_file,PATHINFO_EXTENSION));
+# import libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import os
 
-    //check resume and profile picture format only after that upload file and redirect to confirmation page
-    if($resumeFileType == "pdf" && $profileFileType == "jpg" || $profileFileType == "jpeg"){
-        $name = $_POST['name'];
-        $email = $_POST['email'];
-        $phone = $_POST['phone'];
-        $address = $_POST['address'];
-        $city = $_POST['city'];
-        $state = $_POST['state'];
-        $zip = $_POST['zip'];
-        $position = $_POST['position'];
+#print(os.chdir("D:\Lectures\Lectures\Data Science\datasetDS"))
 
-        if (move_uploaded_file($_FILES["resume"]["tmp_name"], $resume_file)) {
-            echo "The file ". basename( $_FILES["resume"]["name"]). " has been uploaded.";
-        } else {
-            echo "Sorry, there was an error uploading your resume.";
-        }
+# reading data
+automobile = pd.read_csv('Automobile_data.csv')
+print(automobile.head())
 
-        if (move_uploaded_file($_FILES["profile"]["tmp_name"], $profile_file)) {
-            echo "The file ". basename( $_FILES["profile"]["name"]). " has been uploaded.";
-        } else {
-            echo "Sorry, there was an error uploading your profile picture.";
-        }
+# # # getting datatypes
+print(automobile.dtypes)
 
-        $resume = "resume/" . $_FILES["resume"]["name"];
-        $profile = "profile/" . $_FILES["profile"]["name"];
+#getting statistics
+print(automobile.describe())
 
-        header("Location: confirmation.php?name=$name&email=$email&phone=$phone&address=$address&city=$city&state=$state&zip=$zip&position=$position&resume=$resume&profile=$profile");
-    }else{
-        echo "Please upload valid file format";
-    }
+#cleaning data
+print(automobile.isnull().sum())
 
-}
-?>
-
-------------------------------------------    confirmation.php   ------------------------------------------
-<?php
-    $name = $_GET['name'];
-    $email = $_GET['email'];
-    $phone = $_GET['phone'];
-    $address = $_GET['address'];
-    $city = $_GET['city'];
-    $state = $_GET['state'];
-    $zip = $_GET['zip'];
-    $position = $_GET['position'];
-    $resume = $_GET['resume'];
-    $profile = $_GET['profile'];
-?>
-<table border="1">
-    <tr>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Phone</th>
-        <th>Address</th>
-        <th>City</th>
-        <th>State</th>
-        <th>Zip</th>
-        <th>Position</th>
-        <th>Resume</th>
-        <th>Profile</th>
-    </tr>
-    <tr>
-        <td><?php echo $name; ?></td>
-        <td><?php echo $email; ?></td>
-        <td><?php echo $phone; ?></td>
-        <td><?php echo $address; ?></td>
-        <td><?php echo $city; ?></td>
-        <td><?php echo $state; ?></td>
-        <td><?php echo $zip; ?></td>
-        <td><?php echo $position; ?></td>
-        <td><a href="<?php echo $resume; ?>">Resume</a></td>
-        <td><a href="<?php echo $profile; ?>">Profile</a></td>
-    </tr>
-</table>
+# # #cleaning the normalized data
+# # # Find out number of records having '?' value for normalized losses
+print(automobile['normalized-losses'].loc[automobile['normalized-losses'] == '?'].count())
+# # #setting missing to mean
+# # # Setting the missing value to mean of normalized losses and conver the datatype to integer
+nl = automobile['normalized-losses'].loc[automobile['normalized-losses'] != '?']
+nlmean = nl.astype(str).astype(int).mean()
+automobile['normalized-losses'] = automobile['normalized-losses'].replace('?',nlmean).astype(int)
+print(automobile['normalized-losses'].head())
 
 
-------------------------------------------    captcha.php   ------------------------------------------
-<?php
-session_start();
-$captcha = rand(1000, 9999);
-$_SESSION["captcha"] = $captcha;
-$im = imagecreatetruecolor(50, 24);
-$bg = imagecolorallocate($im, 0, 0, 0);
-$fg = imagecolorallocate($im, 255, 255, 255);
-imagefill($im, 0, 0, $bg);
-imagestring($im, rand(1, 7), rand(1, 7),
-   rand(1, 7), $captcha, $fg);
-header("Cache-Control: no-store,
-   no-cache, must-revalidate");
-header('Content-type: image/png');
-imagepng($im);
-imagedestroy($im);
-?>
+# #cleaning price data
+# # Find out the number of values which are not numeric
+print(automobile['price'].str.isnumeric().value_counts())
 
-------------------------------------------    test.php   ------------------------------------------
-<?php
+# #List out the values which are not numeric
+print(automobile['price'].loc[automobile['price'].str.isnumeric() == False])
 
-session_start();
-$msg = '';
-if (isset($_POST['input']) && sizeof($_POST['input']) > 0)
- if ($_POST['input'] == $_SESSION['captcha'])
-  $msg = '<span style="color:green">SUCCESSFUL!!!</span>';
- else
-  $msg = '<span style="color:red">CAPTCHA FAILED!!!</span>';
-?>
-<style>
- body{
-  display:flex;
-  flex-direction:column;
-  align-items: center;
-  justify-content: center;
- }
-</style>
-<body>
- <h2>PROVE THAT YOU ARE NOT A ROBOT!!</h2>
- <strong>
-  Type the text in the image to prove
-  you are not a robot
- </strong>
- <div style='margin:15px'>
-  <img src="captcha.php">
- </div>
- <form method="POST" action=
-   " <?php echo $_SERVER['PHP_SELF']; ?>">
-  <input type="text" name="input"/>
-  <input type="hidden" name="flag" value="1"/>
-  <input type="submit" value="Submit" name="submit"/>
- </form>
- 
- <div style='margin-bottom:5px'>
-  <?php echo $msg; ?>
- </div>
- 
- <div>
-  Can't read the image? Click
-  <a href='<?php echo $_SERVER['PHP_SELF']; ?>'>
-   here
-  </a>
-  to refresh!
- </div>
-</body>
-
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-CRUD php
-
--------------------------------  Here, name the file as config.php   ----------------------
-
-<?php
-$servername = "localhost";
-$username = "root"; 
-$password = ""; 
-$dbname = "mydb"; 
-$conn = new mysqli($servername, $username, $password, $dbname);
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
-
-?> 
-########
-How to Create Records?
-The first operation in PHP CRUD Operations, Create, is responsible for creating tables or new records into an existing table. To do that, first, you must write the code for the webpage to create an entry in the database. 
-
----------------------Name the file as create.php.------------------
-
-<?php 
-include "config.php";
-  if (isset($_POST['submit'])) {
-    $first_name = $_POST['firstname'];
-    $last_name = $_POST['lastname'];
-    $email = $_POST['email'];
-    $password = $_POST['password'];
-    $gender = $_POST['gender'];
-    $sql = "INSERT INTO `users`(`firstname`, `lastname`, `email`, `password`, `gender`) VALUES ('$first_name','$last_name','$email','$password','$gender')";
-    $result = $conn->query($sql);
-    if ($result == TRUE) {
-      echo "New record created successfully.";
-    }else{
-      echo "Error:". $sql . "<br>". $conn->error;
-    } 
-    $conn->close(); 
-  }
-?>
-<!DOCTYPE html>
-<html>
-<body>
-<h2>Signup Form</h2>
-<form action="" method="POST">
-  <fieldset>
-    <legend>Personal information:</legend>
-    First name:<br>
-    <input type="text" name="firstname">
-    <br>
-    Last name:<br>
-    <input type="text" name="lastname">
-    <br>
-    Email:<br>
-    <input type="email" name="email">
-    <br>
-    Password:<br>
-    <input type="password" name="password">
-    <br>
-    Gender:<br>
-    <input type="radio" name="gender" value="Male">Male
-    <input type="radio" name="gender" value="Female">Female
-    <br><br>
-    <input type="submit" name="submit" value="submit">
-  </fieldset>
-</form>
-</body>
-</html>
+# #Setting the missing value to mean of price and convert the datatype to integer
+price = automobile['price'].loc[automobile['price'] != '?']
+pmean = price.astype(str).astype(int).mean()
+automobile['price'] = automobile['price'].replace('?',pmean).astype(int)
+print(automobile['price'].head())
 
 
-##########
-----------------------------Now, name the page as view.php----------------
+# #Checking the numberic and replacing with mean value and conver the datatype to integer
+automobile['horsepower'].str.isnumeric().value_counts()
+horsepower = automobile['horsepower'].loc[automobile['horsepower'] != '?']
+hpmean = horsepower.astype(str).astype(int).mean()
+automobile['horsepower'] = automobile['horsepower'].replace('?',pmean).astype(int)
 
-<?php 
-include "config.php";
-$sql = "SELECT * FROM users";
-$result = $conn->query($sql);
-?>
-<!DOCTYPE html>
-<html>
-<head>
-    <title>View Page</title>
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
-</head>
-<body>
-    <div class="container">
-        <h2>users</h2>
-<table class="table">
-    <thead>
-        <tr>
-        <th>ID</th>
-        <th>First Name</th>
-        <th>Last Name</th>
-        <th>Email</th>
-        <th>Gender</th>
-        <th>Action</th>
-    </tr>
-    </thead>
-    <tbody> 
-        <?php
-            if ($result->num_rows > 0) {
-                while ($row = $result->fetch_assoc()) {
-        ?>
-                    <tr>
-                    <td><?php echo $row['id']; ?></td>
-                    <td><?php echo $row['firstname']; ?></td>
-                    <td><?php echo $row['lastname']; ?></td>
-                    <td><?php echo $row['email']; ?></td>
-                    <td><?php echo $row['gender']; ?></td>
-                    <td><a class="btn btn-info" href="update.php?id=<?php echo $row['id']; ?>">Edit</a>&nbsp;<a class="btn btn-danger" href="delete.php?id=<?php echo $row['id']; ?>">Delete</a></td>
-                    </tr>                       
-        <?php       }
 
-            }
-        ?>                
-    </tbody>
-</table>
-    </div> 
-</body>
-</html>.
-###########
-----------------------------------      he page as update.php       ----------------------------
+# #Checking the outlier of horsepower
+print(automobile.loc[automobile['horsepower'] > 10000])
+# #Excluding the outlier data for horsepower
+print(automobile[np.abs(automobile.horsepower - automobile.horsepower.mean()) <= (3*automobile.horsepower.std())])
+# #Find out the number of invalid value
+print(automobile['bore'].loc[automobile['bore'] == '?'])
 
-<?php 
 
-include "config.php";
+# #Replace the non-numeric value to null and conver the datatype
+automobile['bore'] = pd.to_numeric(automobile['bore'],errors='coerce')
+print(automobile.dtypes)
 
-    if (isset($_POST['update'])) {
 
-        $firstname = $_POST['firstname'];
-        $user_id = $_POST['user_id'];
-        $lastname = $_POST['lastname'];
-        $email = $_POST['email'];
-        $password = $_POST['password'];
-        $gender = $_POST['gender']; 
-        $sql = "UPDATE `users` SET `firstname`='$firstname',`lastname`='$lastname',`email`='$email',`password`='$password',`gender`='$gender' WHERE `id`='$user_id'"; 
-        $result = $conn->query($sql); 
-        if ($result == TRUE) {
-            echo "Record updated successfully.";
-        }else{
-            echo "Error:" . $sql . "<br>" . $conn->error;
-        }
-    }
+# #Replace the non-number value to null and convert the datatype
+automobile['stroke'] = pd.to_numeric(automobile['stroke'],errors='coerce')
+print(automobile.dtypes)
+# #Convert the non-numeric data to null and convert the datatype
+automobile['peak-rpm'] = pd.to_numeric(automobile['peak-rpm'],errors='coerce')
+print(automobile.dtypes)
+# #remove the records which are having the value '?'
+automobile['num-of-doors'].loc[automobile['num-of-doors'] == '?']
+automobile = automobile[automobile['num-of-doors'] != '?']
+automobile['num-of-doors'].loc[automobile['num-of-doors'] == '?']
 
-if (isset($_GET['id'])) {
-    $user_id = $_GET['id']; 
-    $sql = "SELECT * FROM `users` WHERE `id`='$user_id'";
-    $result = $conn->query($sql); 
-    if ($result->num_rows > 0) {        
-        while ($row = $result->fetch_assoc()) {
-            $first_name = $row['firstname'];
-            $lastname = $row['lastname'];
-            $email = $row['email'];
-            $password  = $row['password'];
-            $gender = $row['gender'];
-            $id = $row['id'];
-        } 
-    ?>
 
-        <h2>User Update Form</h2>
-        <form action="" method="post">
-          <fieldset>
-            <legend>Personal information:</legend>
-            First name:<br>
-            <input type="text" name="firstname" value="<?php echo $first_name; ?>">
-            <input type="hidden" name="user_id" value="<?php echo $id; ?>">
-            <br>
-            Last name:<br>
-            <input type="text" name="lastname" value="<?php echo $lastname; ?>">
-            <br>
-            Email:<br>
-            <input type="email" name="email" value="<?php echo $email; ?>">
-            <br>
-            Password:<br>
-            <input type="password" name="password" value="<?php echo $password; ?>">
-            <br>
-            Gender:<br>
-            <input type="radio" name="gender" value="Male" <?php if($gender == 'Male'){ echo "checked";} ?> >Male
-            <input type="radio" name="gender" value="Female" <?php if($gender == 'Female'){ echo "checked";} ?>>Female
-            <br><br>
-            <input type="submit" value="Update" name="update">
-          </fieldset>
-        </form> 
-        </body>
-        </html> 
-    <?php
-    } else{ 
-        header('Location: view.php');
-    } 
-}
-?> 
 
-########
-------------------------------     Now, name the file delete.php     ----------------------
+# automobile.make.value_counts().nlargest(10).plot(kind='bar', figsize=(15,5))
+# plt.title('Number of vehicles by make')
+# plt.ylabel('Number of vehicles')
+# plt.xlabel('Make');
 
-<?php 
-include "config.php"; 
+#automobile.symboling.hist(bins=6,color='green');
+#plt.title("Insurance risk ratings of vehicles")
+#plt.ylabel('Number of vehicles')
+#plt.xlabel('Risk rating');
 
-if (isset($_GET['id'])) {
-    $user_id = $_GET['id'];
-    $sql = "DELETE FROM `users` WHERE `id`='$user_id'";
-     $result = $conn->query($sql);
-     if ($result == TRUE) {
-        echo "Record deleted successfully.";
-    }else{
-        echo "Error:" . $sql . "<br>" . $conn->error;
-    }
-} 
-?>
+automobile['normalized-losses'].hist(bins=5,color='orange');
+plt.title("Normalized losses of vehicles")
+plt.ylabel('Number of vehicles')
+plt.xlabel('Normalized losses');
 
-#####
--------------------------------          db.php   ----------------------
-<?php
-    // Enter your host name, database username, password, and database name.
-    // If you have not set database password on localhost then set empty.
-    $con = mysqli_connect("localhost","root","jayshiv","Login_System");
-    // Check connection
-    if (mysqli_connect_errno()){
-        echo "Failed to connect to MySQL: " . mysqli_connect_error();
-    }
-?>
+#automobile['fuel-type'].value_counts().plot(kind='bar',color='purple')
+#plt.title("Fuel type frequence diagram")
+#plt.ylabel('Number of vehicles')
+#plt.xlabel('Fuel type');
 
-#####
--------------------------------        auth_session.php ---------------------------
-<?php
-    session_start();
-    if(!isset($_SESSION["username"])) {
-        header("Location: login.php");
-        exit();
-    }
-?>
-####
-registration.php
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8"/>
-    <title>Registration</title>
-    <link rel="stylesheet" href="style.css"/>
-</head>
-<body>
-<?php
-    require('db.php');
-    // When form submitted, insert values into the database.
-    if (isset($_REQUEST['username'])) {
-        // removes backslashes
-        $username = stripslashes($_REQUEST['username']);
-        //escapes special characters in a string
-        $username = mysqli_real_escape_string($con, $username);
-        $email    = stripslashes($_REQUEST['email']);
-        $email    = mysqli_real_escape_string($con, $email);
-        $password = stripslashes($_REQUEST['password']);
-        $password = mysqli_real_escape_string($con, $password);
-        $create_datetime = date("Y-m-d H:i:s");
-        $query    = "INSERT into `users` (username, password, email, create_datetime)
-                     VALUES ('$username', '" . md5($password) . "', '$email', '$create_datetime')";
-        $result   = mysqli_query($con, $query);
-        if ($result) {
-            echo "<div class='form'>
-                  <h3>You are registered successfully.</h3><br/>
-                  <p class='link'>Click here to <a href='login.php'>Login</a></p>
-                  </div>";
-        } else {
-            echo "<div class='form'>
-                  <h3>Required fields are missing.</h3><br/>
-                  <p class='link'>Click here to <a href='registration.php'>registration</a> again.</p>
-                  </div>";
-        }
-    } else {
-?>
-    <form class="form" action="" method="post">
-        <h1 class="login-title">Registration</h1>
-        <input type="text" class="login-input" name="username" placeholder="Username" required />
-        <input type="text" class="login-input" name="email" placeholder="Email Adress">
-        <input type="password" class="login-input" name="password" placeholder="Password">
-        <input type="submit" name="submit" value="Register" class="login-button">
-        <p class="link"><a href="login.php">Click to Login</a></p>
-    </form>
-<?php
-    }
-?>
-</body>
-</html>
+#automobile['aspiration'].value_counts().plot.pie(figsize=(6, 6), autopct='%.2f')
+#plt.title("Fuel type pie diagram")
+#plt.ylabel('Number of vehicles')
+#plt.xlabel('Fuel type');
+
+automobile.horsepower[np.abs(automobile.horsepower-automobile.horsepower.mean())<=(3*automobile.horsepower.std())].hist(bins=5,color='red');
+plt.title("Horse power histogram")
+plt.ylabel('Number of vehicles')
+plt.xlabel('Horse power');
+
+automobile['num-of-doors'].value_counts().plot(kind='bar',color='purple')
+plt.title("Number of doors frequency diagram")
+plt.ylabel('Number of vehicles')
+plt.xlabel('Number of doors');
+
+
