@@ -22,7 +22,6 @@ automobile.make.value_counts().nlargest(4).plot(kind='bar', figsize=(15,5))
 plt.title('Number of cars by make')
 plt.ylabel('Number of cars')
 plt.xlabel('Make')
-
 plt.show()
 
 # Draw pie chart of fuel-type column
@@ -43,15 +42,11 @@ plt.show()
 
 import matplotlib.pyplot as plt
 from scipy import stats
-
 x = [5,7,8,7,2,17,2,9,4,11,12,9,6]
 y = [99,86,87,88,111,86,103,87,94,78,77,85,86]
-
 slope, intercept, r, p, std_err = stats.linregress(x, y)
-
 def myfunc(x):
   return slope * x + intercept
-
 mymodel = list(map(myfunc, x))
 
 plt.scatter(x, y)
@@ -61,24 +56,17 @@ plt.show()
 speed = myfunc(10)
 print(speed)
 
-
-
 <============  multiple regression =============>
-
 import pandas
 from sklearn import linear_model
-
 df = pandas.read_csv("data.csv")
-
 X = df[['Weight', 'Volume']]
 y = df['CO2']
-
 regr = linear_model.LinearRegression()
 regr.fit(X, y)
 
 #predict the CO2 emission of a car where the weight is 2300kg, and the volume is 1300cm3:
 predictedCO2 = regr.predict([[2300, 1300]])
-
 print(predictedCO2)
 
 
@@ -90,20 +78,15 @@ import matplotlib.pyplot as plt
 import os
 
 #print(os.chdir("D:\Lectures\Lectures\Data Science\datasetDS"))
-
 # reading data
 automobile = pd.read_csv('Automobile_data.csv')
 print(automobile.head())
-
 # # # getting datatypes
 print(automobile.dtypes)
-
 #getting statistics
 print(automobile.describe())
-
 #cleaning data
 print(automobile.isnull().sum())
-
 # # #cleaning the normalized data
 # # # Find out number of records having '?' value for normalized losses
 print(automobile['normalized-losses'].loc[automobile['normalized-losses'] == '?'].count())
@@ -142,7 +125,6 @@ print(automobile.loc[automobile['horsepower'] > 10000])
 print(automobile[np.abs(automobile.horsepower - automobile.horsepower.mean()) <= (3*automobile.horsepower.std())])
 # #Find out the number of invalid value
 print(automobile['bore'].loc[automobile['bore'] == '?'])
-
 
 # #Replace the non-numeric value to null and conver the datatype
 automobile['bore'] = pd.to_numeric(automobile['bore'],errors='coerce')
@@ -196,5 +178,3 @@ automobile['num-of-doors'].value_counts().plot(kind='bar',color='purple')
 plt.title("Number of doors frequency diagram")
 plt.ylabel('Number of vehicles')
 plt.xlabel('Number of doors');
-
-
